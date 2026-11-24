@@ -1,0 +1,10 @@
+{
+  "model_version": "v1",
+  "type": "threshold_rules",
+  "feature_version": "features-v1",
+  "description": "Data Science prototype (risk_scoring_prototype.py), unchanged.",
+  "rules": [
+    {"feature": "revenue_per_employee", "op": "<", "threshold": "40000", "reason": "low_revenue_per_employee"},
+    {"feature": "requested_to_revenue", "op": ">", "threshold": "0.20", "reason": "high_requested_to_revenue"}
+  ]
+}

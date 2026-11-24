@@ -1,0 +1,1059 @@
+{
+ "title": "Decision service",
+ "uid": "decision-service",
+ "schemaVersion": 39,
+ "version": 1,
+ "editable": true,
+ "refresh": "10s",
+ "time": {
+  "from": "now-1h",
+  "to": "now"
+ },
+ "tags": [
+  "novicap"
+ ],
+ "timezone": "browser",
+ "panels": [
+  {
+   "type": "row",
+   "title": "Overview",
+   "id": 1,
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "Firing alerts",
+   "id": 2,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 1
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(ALERTS{alertstate=\"firing\"}) or vector(0)",
+     "instant": true
+    }
+   ],
+   "description": "Prometheus alert rules (infra/monitoring/alerts.yml). Details: Prometheus /alerts."
+  },
+  {
+   "type": "stat",
+   "title": "Decisions / min",
+   "id": 3,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 1
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       }
+      ]
+     },
+     "unit": "short"
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(rate(decisions_total[5m])) * 60",
+     "instant": true
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "p95 latency",
+   "id": 4,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 1
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       }
+      ]
+     },
+     "unit": "s"
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "histogram_quantile(0.95, sum by (le) (rate(decision_request_seconds_bucket[5m])))",
+     "instant": true
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "Need clarification (1h)",
+   "id": 5,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 1
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "orange",
+        "value": 0.2
+       },
+       {
+        "color": "red",
+        "value": 0.3
+       }
+      ]
+     },
+     "unit": "percentunit"
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(increase(decisions_total{status=\"needs_clarification\"}[1h])) / sum(increase(decisions_total[1h]))",
+     "instant": true
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "title": "Shadow disagreement (1h)",
+   "id": 6,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 1
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       }
+      ]
+     },
+     "unit": "percentunit"
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(increase(shadow_comparisons_total{agree=\"false\"}[1h])) / sum(increase(shadow_comparisons_total[1h]))",
+     "instant": true
+    }
+   ],
+   "description": "Share of applications where the shadow model would have answered differently."
+  },
+  {
+   "type": "stat",
+   "title": "Max feature PSI",
+   "id": 7,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 1
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "orange",
+        "value": 0.1
+       },
+       {
+        "color": "red",
+        "value": 0.25
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(drift_psi)",
+     "instant": true
+    }
+   ],
+   "description": "Batch drift monitor vs the frozen reference. Empty = insufficient data in the window."
+  },
+  {
+   "type": "row",
+   "title": "Service health",
+   "id": 8,
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 5
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Requests/s by HTTP status",
+   "id": 9,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "reqps"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (http_status) (rate(decision_requests_total[1m]))",
+     "legendFormat": "{{http_status}}"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Latency",
+   "id": 10,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "s"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "histogram_quantile(0.5, sum by (le) (rate(decision_request_seconds_bucket[5m])))",
+     "legendFormat": "p50"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "histogram_quantile(0.95, sum by (le) (rate(decision_request_seconds_bucket[5m])))",
+     "legendFormat": "p95"
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "histogram_quantile(0.95, sum by (le, model_version, role) (rate(scorer_call_seconds_bucket[5m])))",
+     "legendFormat": "scorer {{model_version}} {{role}} p95"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Scorer errors, rate limiting, Redis",
+   "id": 11,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "reqps"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (model_version, role) (rate(scorer_errors_total[5m]))",
+     "legendFormat": "scorer {{model_version}} {{role}}"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (source_system) (rate(rate_limited_total[5m]))",
+     "legendFormat": "429 {{source_system}}"
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (op) (rate(redis_errors_total[5m]))",
+     "legendFormat": "redis {{op}}"
+    }
+   ]
+  },
+  {
+   "type": "row",
+   "title": "Data quality by source",
+   "id": 12,
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 14
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Needs clarification share by source",
+   "id": 13,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 15
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "percentunit",
+     "max": 1,
+     "min": 0
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (source_system) (rate(decisions_total{status=\"needs_clarification\"}[10m])) / sum by (source_system) (rate(decisions_total[10m]))",
+     "legendFormat": "{{source_system}}"
+    }
+   ],
+   "description": "EDA baseline: 13%. A feed that starts dropping fields shows up here first."
+  },
+  {
+   "type": "timeseries",
+   "title": "Gate issues/min by code",
+   "id": 14,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 15
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (code) (rate(gate_issues_total[10m])) * 60",
+     "legendFormat": "{{code}}"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Decision outcomes/min",
+   "id": 15,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 15
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (status) (rate(decisions_total[10m])) * 60",
+     "legendFormat": "{{status}}"
+    }
+   ]
+  },
+  {
+   "type": "row",
+   "title": "Model behaviour (no outcomes needed)",
+   "id": 16,
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 23
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Answered by model",
+   "id": 17,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 0,
+    "y": 24
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "percentunit",
+     "max": 1,
+     "min": 0
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (model_version) (rate(risk_bands_total{role=\"primary\"}[10m])) / scalar(sum(rate(risk_bands_total{role=\"primary\"}[10m])))",
+     "legendFormat": "{{model_version}}"
+    }
+   ],
+   "description": "Share of new decisions answered by each version: the canary percentage as it actually happens."
+  },
+  {
+   "type": "timeseries",
+   "title": "High-risk share",
+   "id": 18,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 6,
+    "y": 24
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "percentunit",
+     "max": 1,
+     "min": 0
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (model_version, role) (rate(risk_bands_total{risk_band=\"high_risk\"}[10m])) / sum by (model_version, role) (rate(risk_bands_total[10m]))",
+     "legendFormat": "{{model_version}} ({{role}})"
+    }
+   ],
+   "description": "Prediction drift, and the effect the other version would have on the same applications (shadow)."
+  },
+  {
+   "type": "timeseries",
+   "title": "Shadow disagreement",
+   "id": 19,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 12,
+    "y": 24
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "percentunit",
+     "max": 1,
+     "min": 0
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (primary_version, shadow_version) (rate(shadow_comparisons_total{agree=\"false\"}[10m])) / sum by (primary_version, shadow_version) (rate(shadow_comparisons_total[10m]))",
+     "legendFormat": "{{primary_version}} answered, {{shadow_version}} shadow"
+    }
+   ],
+   "description": "The offline replay of v2-demo predicts 28%."
+  },
+  {
+   "type": "table",
+   "title": "Live model artifacts",
+   "id": 20,
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 18,
+    "y": 24
+   },
+   "options": {
+    "showHeader": true
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "scorer_info",
+     "instant": true,
+     "format": "table"
+    }
+   ],
+   "description": "What each scorer container actually serves; the SHA-256 is stored with every evaluation.",
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "__name__": true,
+       "Value": true,
+       "job": true,
+       "instance": true
+      },
+      "indexByName": {
+       "model_version": 0,
+       "artifact_sha256": 1,
+       "feature_version": 2
+      }
+     }
+    }
+   ]
+  },
+  {
+   "type": "row",
+   "title": "Drift vs frozen reference (batch monitor, Postgres)",
+   "id": 21,
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 32
+   },
+   "panels": []
+  },
+  {
+   "type": "table",
+   "title": "Latest drift run",
+   "id": 22,
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "postgres"
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 10,
+    "x": 0,
+    "y": 33
+   },
+   "options": {
+    "showHeader": true
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "postgres"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT feature, round(psi::numeric, 3) AS psi, status, companies, run_at\nFROM drift_runs\nWHERE run_at = (SELECT max(run_at) FROM drift_runs)\nORDER BY psi DESC NULLS LAST"
+    }
+   ],
+   "description": "PSI: < 0.1 stable, 0.1-0.25 watch, > 0.25 act. One row per company per window."
+  },
+  {
+   "type": "timeseries",
+   "title": "PSI over time",
+   "id": 23,
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "postgres"
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 14,
+    "x": 10,
+    "y": 33
+   },
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "thresholdsStyle": {
+       "mode": "line"
+      },
+      "lineWidth": 2
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "orange",
+        "value": 0.1
+       },
+       {
+        "color": "red",
+        "value": 0.25
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "postgres"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT run_at AS time, feature AS metric, psi\nFROM drift_runs\nWHERE $__timeFilter(run_at) AND psi IS NOT NULL\nORDER BY 1"
+    }
+   ]
+  },
+  {
+   "type": "row",
+   "title": "Repayment outcomes (target monitoring; empty until loans mature)",
+   "id": 24,
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 43
+   },
+   "panels": []
+  },
+  {
+   "type": "table",
+   "title": "Default rate by funding month and model",
+   "id": 25,
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "postgres"
+   },
+   "gridPos": {
+    "h": 6,
+    "w": 24,
+    "x": 0,
+    "y": 44
+   },
+   "options": {
+    "showHeader": true
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "postgres"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT vintage, model_version, loans, matured, defaulted, default_rate\nFROM loan_vintages ORDER BY vintage DESC, model_version"
+    }
+   ],
+   "description": "The only true measure of model quality. Until outcomes exist, the panels above are proxies."
+  }
+ ]
+}

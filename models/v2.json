@@ -1,0 +1,10 @@
+{
+  "model_version": "v2",
+  "type": "threshold_rules",
+  "feature_version": "features-v1",
+  "description": "DEMO challenger: requested/revenue ceiling 20% -> 12%. Exercises shadow comparison; not validated as better.",
+  "rules": [
+    {"feature": "revenue_per_employee", "op": "<", "threshold": "40000", "reason": "low_revenue_per_employee"},
+    {"feature": "requested_to_revenue", "op": ">", "threshold": "0.12", "reason": "high_requested_to_revenue"}
+  ]
+}

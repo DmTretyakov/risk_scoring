@@ -1,0 +1,84 @@
+# Thresholds are demo starting points derived from the EDA baseline, to be tuned on real traffic.
+groups:
+  - name: service
+    rules:
+      - alert: TargetDown
+        expr: up == 0
+        for: 1m
+        labels: {severity: page}
+        annotations: {summary: "{{ $labels.job }} {{ $labels.instance }} is not being scraped"}
+
+      - alert: DecisionApiErrors
+        expr: sum(rate(decision_requests_total{http_status=~"5.."}[5m])) > 0
+        for: 2m
+        labels: {severity: page}
+        annotations: {summary: "decision-api returns 5xx: decisions are not being made"}
+
+      - alert: PrimaryScorerFailing
+        expr: sum by (model_version) (rate(scorer_errors_total{role="primary"}[5m])) > 0
+        for: 1m
+        labels: {severity: page}
+        annotations: {summary: "stable scorer {{ $labels.model_version }} failing: decisions return 503"}
+
+      - alert: CandidateScorerFailing
+        expr: sum by (model_version, role) (rate(scorer_errors_total{role=~"shadow|canary"}[5m])) > 0
+        for: 5m
+        labels: {severity: ticket}
+        annotations: {summary: "{{ $labels.model_version }} failing as {{ $labels.role }}; answers are not affected"}
+
+      - alert: SlowDecisions
+        expr: histogram_quantile(0.95, sum by (le) (rate(decision_request_seconds_bucket[5m]))) > 0.5
+        for: 5m
+        labels: {severity: ticket}
+        annotations: {summary: "p95 decision latency above 500 ms"}
+
+      - alert: SourceRateLimited
+        expr: sum by (source_system) (rate(rate_limited_total[5m])) > 1
+        for: 5m
+        labels: {severity: ticket}
+        annotations: {summary: "{{ $labels.source_system }} keeps hitting the rate limit"}
+
+  - name: data-and-model
+    rules:
+      # EDA baseline: ~13% of applications need clarification.
+      - alert: SourceDataQualityDropped
+        expr: |
+          sum by (source_system) (increase(decisions_total{status="needs_clarification"}[30m]))
+            / sum by (source_system) (increase(decisions_total[30m])) > 0.30
+          and sum by (source_system) (increase(decisions_total[30m])) > 20
+        labels: {severity: ticket}
+        annotations: {summary: "{{ $labels.source_system }}: {{ $value | humanizePercentage }} of applications need clarification"}
+
+      # EDA: v1 flags none of the plausible export rows. A candidate brings its own expected share
+      # from the offline replay (v2-demo: 28%); in a real rollout this threshold is set per model.
+      - alert: HighRiskShareShift
+        expr: |
+          sum by (model_version) (increase(risk_bands_total{role="primary", risk_band="high_risk"}[1h]))
+            / sum by (model_version) (increase(risk_bands_total{role="primary"}[1h])) > 0.20
+          and sum by (model_version) (increase(risk_bands_total{role="primary"}[1h])) > 20
+        labels: {severity: ticket}
+        annotations: {summary: "{{ $labels.model_version }} flags {{ $value | humanizePercentage }} as high risk"}
+
+      # The offline replay of v2-demo predicts 28% disagreement (41 of 146): alert well above that.
+      - alert: ShadowDisagreementHigh
+        expr: |
+          sum (increase(shadow_comparisons_total{agree="false"}[1h]))
+            / sum (increase(shadow_comparisons_total[1h])) > 0.40
+        labels: {severity: ticket}
+        annotations: {summary: "shadow disagrees with primary on {{ $value | humanizePercentage }} of applications"}
+
+      - alert: FeatureDrift
+        expr: drift_psi > 0.25
+        labels: {severity: ticket}
+        annotations: {summary: "{{ $labels.feature }} drifted (PSI {{ $value | printf \"%.2f\" }})"}
+
+      - alert: MonitorStale
+        expr: time() - monitor_last_run_timestamp_seconds > 600
+        labels: {severity: ticket}
+        annotations: {summary: "drift monitor has not run for 10 minutes"}
+
+      - alert: NoDriftReference
+        expr: drift_reference_present == 0
+        for: 10m
+        labels: {severity: ticket}
+        annotations: {summary: "no frozen reference: drift is not being measured"}

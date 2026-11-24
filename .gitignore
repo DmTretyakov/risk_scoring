@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# uv / virtual environments (uv.lock files are committed)
+.venv/
+
+# Jupyter (executed notebooks are committed; checkpoints are not)
+.ipynb_checkpoints/
+
+# Supplied task files: copied in locally, never committed (see README)
+data/
+reference/
+
+# Local settings and secrets
+.env
+.env.*
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store

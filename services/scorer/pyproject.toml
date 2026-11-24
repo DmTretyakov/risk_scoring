@@ -1,0 +1,23 @@
+[project]
+name = "scorer"
+version = "0.3.0"
+description = "Serves one pinned model artifact over HTTP"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.115.12",
+    "uvicorn==0.34.2",
+    "pydantic==2.11.4",
+    "prometheus-client==0.21.1",
+]
+
+[dependency-groups]
+dev = ["pytest==8.3.5", "httpx==0.28.1"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"
+filterwarnings = ["ignore:The anyio.abc.BlockingPortal alias:DeprecationWarning"]
